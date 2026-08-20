@@ -491,30 +491,11 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         sbEnableAppNotify.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             binding!!.layoutOptionalAction.visibility = if (isChecked) View.VISIBLE else View.GONE
             SettingUtils.enableAppNotify = isChecked
-            if (isChecked) {
-                XXPermissions.with(this)
-                    .permission(
-                        PermissionLists.getBindNotificationListenerServicePermission(
-                            NotificationService::class.java
-                        )
-                    )
-                    .request(object : OnPermissionCallback {
-                        override fun onResult(grantedList: MutableList<IPermission>, deniedList: MutableList<IPermission>) {
-                            val allGranted = deniedList.isEmpty()
-                            if (!allGranted) {
-                                Log.e(TAG, "onGranted: permissions=$deniedList, allGranted=false")
-                                SettingUtils.enableAppNotify = false
-                                sbEnableAppNotify.isChecked = false
-                                XToastUtils.error(R.string.tips_notification_listener)
-                                return
-                            }
-                            // 处理权限请求成功的逻辑
-                            SettingUtils.enableAppNotify = true
-                            sbEnableAppNotify.isChecked = true
-                            CommonUtils.toggleNotificationListenerService(requireContext())
-                        }
-                    })
-            }
+                   if (isChecked) {
+            CommonUtils.toggleNotificationListenerService(requireContext())
+        }
+
+            
         }
         val isEnable = SettingUtils.enableAppNotify
         sbEnableAppNotify.isChecked = isEnable
