@@ -20,8 +20,18 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
 
-      # 官方工作流打 release 需要 pppscn 的私钥仓库（fork 里没有 secrets，必须去掉）
-      # 这里改打 debug 包：签名自动用 runner 的 debug key
+      # 生成 debug 签名库（对应 fork 里 keystore/keystore.properties 的配置）
+      # 不生成的话，build.gradle 的 signingConfigs 引用 keystore.properties 里不存在的文件 → 签名步骤必挂
+      - name: Generate debug keystore
+        run: |
+          mkdir -p "$HOME/.android"
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      # 官方工作流打 release 需要 pppscn 私钥仓库（fork 里没有 secrets，必须去掉）
+      # debug 包签名用上面生成的 key，全新签名不在小米黑名单
       - name: Build Debug APK
         run: bash ./gradlew assembleDebug
 
