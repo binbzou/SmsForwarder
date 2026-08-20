@@ -1,10 +1,5 @@
 name: Build Debug APK
 
-# 手动触发：仓库 Actions 页 → 该工作流 → Run workflow
-# 用于绕过小米对 SmsForwarder 官方旧版签名的风险拦截：
-#   1) 用 GitHub runner 自动生成的 debug key 签名（全新签名，不在黑名单）
-#   2) 配合 app/build.gradle 把 applicationId 改成 com.idormy.sms.forwarder
-#      → 设备上残留的通知监听条目自动激活，无需任何权限操作
 on:
   workflow_dispatch:
 
@@ -20,8 +15,6 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
 
-      # 生成 debug 签名库（对应 fork 里 keystore/keystore.properties 的配置）
-      # 不生成的话，build.gradle 的 signingConfigs 引用 keystore.properties 里不存在的文件 → 签名步骤必挂
       - name: Generate debug keystore
         run: |
           mkdir -p "$HOME/.android"
@@ -30,8 +23,6 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      # 官方工作流打 release 需要 pppscn 私钥仓库（fork 里没有 secrets，必须去掉）
-      # debug 包签名用上面生成的 key，全新签名不在小米黑名单
       - name: Build Debug APK
         run: bash ./gradlew assembleDebug
 
